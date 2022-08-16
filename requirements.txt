@@ -6,6 +6,7 @@ cycler==0.11.0
 Django==4.0.3
 django-ckeditor==6.2.0
 django-js-asset==2.0.0
+et-xmlfile==1.1.0
 fonttools==4.35.0
 joblib==1.1.0
 kiwisolver==1.4.4
@@ -13,6 +14,7 @@ matplotlib==3.5.3
 mysqlclient==2.1.0
 nltk==3.7
 numpy==1.23.2
+openpyxl==3.0.10
 packaging==21.3
 pandas==1.4.3
 Pillow==9.0.1

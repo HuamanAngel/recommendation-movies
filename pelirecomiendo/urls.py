@@ -18,5 +18,6 @@ from django.urls import path
 from pelirecomiendo.views import *
 
 urlpatterns = [
-    path('ruta/', home, name='home'),
+    path('training/', trainingModel, name='trainingModel'),
+    path('home/', home, name='home'),
 ]
