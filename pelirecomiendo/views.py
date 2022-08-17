@@ -1,4 +1,5 @@
 from calendar import c
+import json
 from django.shortcuts import render, redirect, get_object_or_404
 
 from django.contrib import messages
@@ -196,36 +197,36 @@ def trainingModel(request):
     
     # Todas las películas en base a generos
     joblib.dump( [gen_md,indices,cosine_sim,titles,smd], 'model_ia/model_recomendation.pkl' )
-    return HttpResponse(urlExcel)
-    return render(request, 'chatbot/index.html')
+    return HttpResponse("Modelo creado correctamente")
 
 
-
-
-
-def home(Request):
+def getRecomendations(request):
     urlModel = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     urlModel = os.path.join(urlModel, 'model_ia')
-    
+    print(request.GET['movie_name'])
     url1 = os.path.join(urlModel, 'model_recomendation.pkl')    
     gen_md,indices,cosine_sim,titles,smd = joblib.load(url1)
     
     url2 = os.path.join(urlModel, 'qualified.pkl')    
     modelQualification = joblib.load(url2)
-    print(gen_md.head(2))
-    print("RANKING DE PELICULA SEGUN GENERO")
-    print(build_chart('Comedy',gen_md).head(5))
-    print()
-    print("RANKING DE PELICULA SEGUN TITULO")
-    print(get_recommendations('The Godfather',indices,cosine_sim,titles).head(5))
-    print()
-    print("RANKING DE PELICULA SEGUN TITULO ORDENADO POR CALIFICACION")
-    print(improved_recommendations('The Godfather',indices,cosine_sim,smd).head(5))
-    # print("Probnado el modelo")
-    # print(mSimple.build_chart('Comedy'))
-    
-    return HttpResponse("vaca")
+    # print(gen_md.head(2))
+    # print("RANKING DE PELICULA SEGUN GENERO")
+    # print(build_chart('Comedy',gen_md).head(5))
+    # print()
+    # print("RANKING DE PELICULA SEGUN TITULO")
+    # print(get_recommendations('The Godfather',indices,cosine_sim,titles).head(5))
+    # print()
+    # print("RANKING DE PELICULA SEGUN TITULO ORDENADO POR CALIFICACION")
+    # print(improved_recommendations('The Godfather',indices,cosine_sim,smd).head(5))
+    valor = 'The Godfather'
+    response = {
+        "ranked_items": build_chart('Comedy',gen_md).head(5).to_dict('records'),
+        "recommendations_qualified": improved_recommendations(request.GET['movie_name'],indices,cosine_sim,smd).head(5).to_dict('records'),
+    }
+    return HttpResponse(json.dumps(response), content_type="application/json")
 
+def home(request):    
+    return render(request, 'chatbot/index.html')
 
 def build_chart(genre,gen_md ,percentile=0.85):
     df = gen_md[gen_md['genre'] == genre]

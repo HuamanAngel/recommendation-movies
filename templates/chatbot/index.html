@@ -8,5 +8,64 @@
 </head>
 <body>
     <h1>Hola mundo </h1>
+    <form method="get">
+        <input type="text" name="movie_name" placeholder="Insertar Nombre de la pelicula">
+        <button id="getRecommedation">!! Recommiendame ¡¡</button>
+    </form>
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+
+    <!-- <script>
+        $(document).ready(function(){
+            $.ajax({
+                url: 'https://api.dialogflow.com/v1/query?v=20170712&lang=es&query=Hola&sessionId=12345',
+                type: 'GET',
+                beforeSend: function (xhr) {
+                    xhr.setRequestHeader('Authorization', 'Bearer ' + 'f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8');
+                },
+                success: function (data) {
+                    console.log(data);
+                }
+            });
+        });
+    </script> -->
+
+    <script>
+        $("#getRecommedation").click(function(e){
+            e.preventDefault();
+            console.log($("input[name=movie_name]").val());
+            $.ajax({
+                url: '/recommendation',
+                type: 'GET',
+                data: {
+                    movie_name: $("input[name=movie_name]").val()
+                },
+                beforeSend: function (xhr) {
+                    $("#getRecommedation").attr('disabled', true);
+                    // xhr.setRequestHeader('Authorization', 'Bearer ' + 'f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8');
+                },
+                success: function (data) {
+                    $("#getRecommedation").attr('disabled', false);
+                    ranked_items = data.ranked_items;
+                    recommendations_qualified = data.recommendations_qualified;
+                    $("#getRecommedation").after('<br><strong>Recomendacion segun genero</strong><br><ul></ul>');
+                    $.each(ranked_items, function(index, value){
+                        $("ul").append('<li>' + value.title +' - ' + value.year + ' - '+value.vote_average + '</li>');
+                    });
+
+                    $("#getRecommedation").after('<br><strong>Recomendacion segun titulo calificada</strong><br><ul id="recomend_qual"></ul>');
+                    $.each(recommendations_qualified, function(index, value){
+                        $("#recomend_qual").append('<li>' + value.title +' - ' + value.year + ' - '+value.vote_average + '</li>');
+                    });
+
+                    //console.log(data.ranked_items);
+                    //console.log(data.recommendations_qualified);
+                    //data = JSON.stringify(data);
+                    //console.log(data[0]);
+                    //console.log(data.recommendations_qualified);
+                }
+            });
+            
+        });        
+    </script>
 </body>
 </html>
