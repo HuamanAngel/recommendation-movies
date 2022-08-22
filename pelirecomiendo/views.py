@@ -1,5 +1,12 @@
 from calendar import c
-import json
+from dataclasses import replace
+
+from json import loads,dumps
+from logging import getLogger
+
+
+    
+# from library.df_response_lib import *
 from django.shortcuts import render, redirect, get_object_or_404
 
 from django.contrib import messages
@@ -7,7 +14,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login
 
 from django.template import loader
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect,JsonResponse
 from django.utils.http import urlsafe_base64_decode
 import os
 
@@ -29,8 +36,86 @@ from nltk.stem.wordnet import WordNetLemmatizer
 from nltk.corpus import wordnet
 from surprise import Reader, Dataset, SVD
 from surprise.model_selection import cross_validate
+from django.views.decorators.csrf import csrf_exempt
+from dialogflow_fulfillment import WebhookClient,Text
 # import warnings; warnings.simplefilter('ignore')
 
+
+logger = getLogger('django.server.webhook')
+
+
+def ShowChatbot(request):
+    return render(request, 'chatbot/chatbot.html')
+
+def handler(agent: WebhookClient) -> None:
+    """Handle the webhook request."""
+
+@csrf_exempt
+def webhook(request):
+    if request.method == 'POST':
+        request_ = loads(request.body)
+
+        listGenres = ['Action', 'Adventure', 'Animation', 'Comedy', 'Crime', 'Documentary', 'Drama', 'Family','Foreign', 'Fantasy', 'History', 'Horror', 'Music', 'Mystery', 'Romance', 'Science Fiction', 'TV Movie', 'Thriller', 'War', 'Western']
+
+        # Cargar el modelo
+        urlModel = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        urlModel = os.path.join(urlModel, 'model_ia')
+        url1 = os.path.join(urlModel, 'model_recomendation.pkl')    
+        gen_md,indices,cosine_sim,titles,smd = joblib.load(url1)
+        
+        url2 = os.path.join(urlModel, 'qualified.pkl')    
+        modelQualification = joblib.load(url2)
+
+
+        isGenre = False
+
+        # Handle request
+        agent = WebhookClient(request_)
+        # send back message
+        
+        agent.handle_request(handler)
+        # Log header object
+        logger.info(f'Response header: {agent}')
+        # get session id
+        session_id = agent.session
+        print(session_id)
+        # Log WebhookResponse object
+        logger.info(f'Response body: {agent.response}')
+        # jsonData = loads(agent.response)
+        print(agent.response)
+        if agent.action == 'recomendarNombre' or agent.action == 'recomendacion_nombre.recomendacion_nombre-repeat':
+            name_movie = agent.response['outputContexts'][0]['parameters']['name_movie']
+            print(name_movie)
+            recommend_movie = improved_recommendations(name_movie,indices,cosine_sim,smd).head(10)
+            recommend_movie = recommend_movie.sample(n=1,replace = False)
+            movies = recommend_movie.iloc[0]
+            agent.add(Text("La mejor pelicula parecida a '"+name_movie+"' es " + movies.title+"("+ str(movies.year)+")" + " con un promedio de calificacion de " + str(movies.vote_average) + ". ¿Quieres otra mas?"))
+            
+            
+        if agent.action == 'recomendarGenero' or agent.action == 'recomendacion_generos.recomendacion_generos-repeat':
+            for genre in listGenres:
+                if(genre in agent.response['outputContexts'][0]['parameters']['generos']):
+                    isGenre = True
+                    break
+            
+            if isGenre:
+                genreDir = agent.response['outputContexts'][0]['parameters']['generos']
+                movies = build_chart(genreDir,gen_md).head(15)
+                movies = movies.sample(n = 1, replace=False)
+                movies = movies.iloc[0]
+                print("toda la informacion de la pelicula")
+                print(movies)
+                # agent.fulfillment_text = f'La pelicula que mejor se adapta a tu género es {movies["title"]}'
+                # response.query_result.fulfillment_text
+                # agent.add(Text('How are you feeling today?'))
+                agent.add(Text("Te recomendamos " + movies.title+"("+ str(movies.year)+")" + " con un promedio de calificacion de " + str(movies.vote_average) + ". ¿Quieres otra mas?"))
+        return JsonResponse(agent.response)
+    return HttpResponse()
+
+
+    
+    
+    
 def trainingModel(request):
     urlExcel = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     urlExcel = os.path.join(urlExcel, 'dataset')
@@ -223,7 +308,7 @@ def getRecomendations(request):
         "ranked_items": build_chart('Comedy',gen_md).head(5).to_dict('records'),
         "recommendations_qualified": improved_recommendations(request.GET['movie_name'],indices,cosine_sim,smd).head(5).to_dict('records'),
     }
-    return HttpResponse(json.dumps(response), content_type="application/json")
+    return HttpResponse(dumps(response), content_type="application/json")
 
 def home(request):    
     return render(request, 'chatbot/index.html')

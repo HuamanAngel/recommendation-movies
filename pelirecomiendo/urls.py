@@ -18,7 +18,9 @@ from django.urls import path
 from pelirecomiendo.views import *
 
 urlpatterns = [
+    path('', ShowChatbot, name='ShowChatbot'),
     path('training/', trainingModel, name='trainingModel'),
     path('home/', home, name='home'),
     path('recommendation/', getRecomendations, name='getRecomendations'),
+    path('webhook/', webhook, name='webhook'),
 ]
