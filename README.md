@@ -21,7 +21,7 @@ El proyecto funciona en base a un modelo entrenado de recomendacion de peliculas
 generar este modelo podemos generarlo
 
 La aplicacion funciona con un modelo entrenado, para generar este modelo tenemos
-que descargar model_recomendation.pkl en el siguiente enlace [enlace](https://drive.google.com/drive/folders/1CeFqm3dvBcJvoAeMjbCmmA5XtldvW2iN?usp=sharing).
+que descargar model_recomendation.pkl en el siguiente enlace [enlace](https://drive.google.com/drive/folders/1CeFqm3dvBcJvoAeMjbCmmA5XtldvW2iN?usp=sharing) o lo podemos generar desde el proyecto solo accediendo hacia la ruta '/training/'.
 
 Hay 2 metodos que permiten la recomendacion : 
 - build_chart : como 1er parametro se le pasa el genero, nos da como resultado una lista de peliculas ordenadas segun el promedio de votos
