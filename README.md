@@ -4,6 +4,44 @@
 
 La llegada de la pandemia ocasionó varios cambios en el estilo de vida de la población, siendo uno de ellos el del entretenimiento. Con el incremento del Streaming, las personas buscan recomendaciones sobre qué película piensan ver. Por ello, en este estudio se hizo la implementación de un Sistema Recomendador de películas utilizando procesamiento de lenguaje natural a través de Question Answer.
 
+
+## Uso 
+
+Primero arracamos levantamos el servidor (Framework Django), para esto nos 
+ubicamos en la ruta raiz y ejecutamos los siguientes comandos : 
+
+- python -m venv env
+- env\Scripts\activate
+- pip install -r requirements.txt
+- python manage.py runserver
+
+Ahora accedemos a la url http://localhost:8000/ y comprobamos que este correctamente levantado
+
+El proyecto funciona en base a un modelo entrenado de recomendacion de peliculas, para 
+generar este modelo podemos generarlo
+
+La aplicacion funciona con un modelo entrenado, para generar este modelo tenemos
+que descargar model_recomendation.pkl en el siguiente enlace [enlace](https://drive.google.com/drive/folders/1CeFqm3dvBcJvoAeMjbCmmA5XtldvW2iN?usp=sharing).
+
+Hay 2 metodos que permiten la recomendacion : 
+- build_chart : como 1er parametro se le pasa el genero, nos da como resultado una lista de peliculas ordenadas segun el promedio de votos
+- improved_recommendations : Como 1er parameetro se pasa el nombre de la pelicula, nos da como resultado una lista de peliculas ordenadas segun el voto promedio
+
+**USO DEL WEBHOOK CON DIALOGFLOW**
+
+El metodo webhook dentro de la ruta 'webhook/' conecta con Diaglogflow, para su uso :
+- Crearse una cuenta en Dialogfow
+- Instalar ngrok y apuntar hacia el puerto 8000 ( o en el puerto abierto por django)
+    - ngrok http 8000
+- Ahora en fulfillment dentro de Dialogflow, colocamos la url que nos da ngrok y apuntamos a la ruta /webhook
+    Ejemplo : 'https://xxxxxxxxxxxx.xx/webhook/'
+- Ahora en entity creamos una llamada 'genero', aca registramos todos los generos que tiene el modelo
+- Creamos dos intenciones :
+    - Intencion de recomendar en base a genero : Creamos una intencion y colocamos como nombre de la accion         'recomendarGenero' y colcamos como parametro no requerido 'generos' ( lo enlazamos con la entidad 'genero' - @generos)
+    
+    - Intencion de recomendar basado en nombre : Creamos una intencion y colocamos como nombre de la accion         'recomendarNombre' y colcamos como parametro no requerido name_movie ( lo enalzamos con @system.any)
+
+- Con esto ya deberia estar funcionando, escribir texto dentro del chatbot y listo.
 ## Datasets 🗂
 
 En el desarrollo del sistema recomendador se utilizó los siguientes datasets:
@@ -68,6 +106,8 @@ Se procede a añadir más datos a nuestra matriz que contenía solo IDs y títul
 Se realiza una extracción de las palabras clave para crear un nuevo campo dentro de nuestra matriz final, para esto se hace varias operaciones descartando, contándose, devolviendo a su raíz para obtener al final una variable sólida respectiva a una película en concreto junto a reparto, director y género.
 
 El resultado final del sistema son los modelos de películas en base a su calificación y su género, estos tienen de nombre “qualified.pkl” y “model_recomendation.pkl” respectivamente. 
+
+Se puede visualizar los modelos en siguiente [enlace](https://drive.google.com/drive/folders/1CeFqm3dvBcJvoAeMjbCmmA5XtldvW2iN?usp=sharing).
 
 ## Implementación 
 
